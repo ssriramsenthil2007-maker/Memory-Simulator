@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator - Memory Management Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="topbar">
+        <strong>Memory Management Simulator</strong>
+        <a href="index.html">← Home</a>
+    </div>
+
+    <main>
+        <div class="tabs">
+            <button class="active" data-tab="paging">Paging</button>
+            <button data-tab="seg">Segmentation</button>
+            <button data-tab="vm">Page replacement</button>
+        </div>
+
+        <!-- ===== Paging ===== -->
+        <section class="tab active" id="tab-paging">
+            <h2>Paging</h2>
+            <p class="intro">Split a logical address into a page number and offset, then find its physical address.</p>
+            <label>Page size: <input id="pageSize" type="number" value="256"></label>
+            <label>Logical address: <input id="address" type="number" value="1234"></label>
+            <button id="translateBtn">Translate</button>
+            <p id="result"></p>
+            <h3>Page table</h3>
+            <table id="pageTable"></table>
+        </section>
+
+        <!-- ===== Segmentation ===== -->
+        <section class="tab" id="tab-seg">
+            <h2>Segmentation</h2>
+            <p class="intro">Use a segment's base and limit to translate an address, or catch a segmentation fault.</p>
+            <label>Segment number: <input id="segNo" type="number" value="2"></label>
+            <label>Offset: <input id="segOffset" type="number" value="53"></label>
+            <button id="segBtn">Translate</button>
+            <p id="segResult"></p>
+            <h3>Segment table</h3>
+            <table id="segTable"></table>
+        </section>
+
+        <!-- ===== Page replacement ===== -->
+        <section class="tab" id="tab-vm">
+            <h2>Page replacement</h2>
+            <p class="intro">FIFO, LRU and Optimal run together on the same reference string so you can compare them.</p>
+            <label>Reference string: <input id="refString" value="7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1"></label>
+            <label>Frames: <input id="frameCount" type="number" value="3" min="1"></label>
+            <button id="runBtn">Run all algorithms</button>
+            <p id="vmResult"></p>
+
+            <div id="stats" class="stats"></div>
+            <div id="details"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Created by S Sriram · SRM Institute of Science and Technology, Ramapuram · Department of CSE</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

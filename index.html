@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Management Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="hero">
+        <p class="tag">Operating Systems Mini Project</p>
+        <h1>Memory Management Simulator</h1>
+        <p class="sub">See how an operating system translates addresses and replaces pages, step by step.</p>
+        <a class="start" href="simulator.html">Start simulating</a>
+        <div class="blocks" id="blocks"></div>
+    </header>
+
+    <section class="cards">
+        <a class="card" href="simulator.html?tab=paging">
+            <h3>Paging</h3>
+            <p>Split a logical address into page number and offset, then find the physical address.</p>
+        </a>
+        <a class="card" href="simulator.html?tab=seg">
+            <h3>Segmentation</h3>
+            <p>Use base and limit values to translate addresses and catch segmentation faults.</p>
+        </a>
+        <a class="card" href="simulator.html?tab=vm">
+            <h3>Page replacement</h3>
+            <p>Compare FIFO, LRU and Optimal and see which causes the fewest page faults.</p>
+        </a>
+    </section>
+
+    <footer>
+        <p>Created by S Sriram · SRM Institute of Science and Technology, Ramapuram · Department of CSE</p>
+    </footer>
+
+    <script src="home.js"></script>
+</body>
+</html>
