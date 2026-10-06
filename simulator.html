@@ -23,24 +23,28 @@
         <!-- ===== Paging ===== -->
         <section class="tab active" id="tab-paging">
             <h2>Paging</h2>
-            <p class="intro">Split a logical address into a page number and offset, then find its physical address.</p>
+            <p class="intro">Split a logical address into a page number and offset. Use the page table to map that page to a frame; if no frame is mapped, the access causes a page fault.</p>
+            <p class="paging-formula"><strong>Address mapping:</strong> page number = floor(logical address / page size), offset = logical address mod page size, physical address = frame number × page size + offset.</p>
             <label>Page size: <input id="pageSize" type="number" value="256"></label>
             <label>Logical address: <input id="address" type="number" value="1234"></label>
             <button id="translateBtn">Translate</button>
             <p id="result"></p>
-            <h3>Page table</h3>
+            <h3>Page table mapping</h3>
+            <p class="table-note">Each row maps a virtual page to a physical frame. “Not in memory” means there is no valid frame mapping, so accessing that page causes a page fault.</p>
             <table id="pageTable"></table>
         </section>
 
         <!-- ===== Segmentation ===== -->
         <section class="tab" id="tab-seg">
             <h2>Segmentation</h2>
-            <p class="intro">Use a segment's base and limit to translate an address, or catch a segmentation fault.</p>
+            <p class="intro">A logical address is a segment number and an offset. Look up the segment's base and limit; the offset must be smaller than the limit before it can be added to the base.</p>
+            <p class="paging-formula"><strong>Address mapping:</strong> if offset &lt; limit, physical address = base + offset; otherwise, the address is invalid and causes a segmentation fault.</p>
             <label>Segment number: <input id="segNo" type="number" value="2"></label>
             <label>Offset: <input id="segOffset" type="number" value="53"></label>
             <button id="segBtn">Translate</button>
             <p id="segResult"></p>
-            <h3>Segment table</h3>
+            <h3>Segment table mapping</h3>
+            <p class="table-note">Base is the starting physical address. Limit is the segment size and the offset must be in the range 0 to limit − 1.</p>
             <table id="segTable"></table>
         </section>
 
@@ -59,7 +63,7 @@
     </main>
 
     <footer>
-        <p>Created by S Sriram · SRM Institute of Science and Technology, Ramapuram · Department of CSE</p>
+        <p> SRM Institute of Science and Technology, Ramapuram · Department of CSE</p>
     </footer>
 
     <script src="script.js"></script>

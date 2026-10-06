@@ -161,6 +161,20 @@ button:hover { background: #17566d; }
   padding: 10px 14px;
   border-radius: 0 4px 4px 0;
 }
+#result, #segResult {
+  white-space: pre-line;
+  line-height: 1.6;
+}
+.paging-formula, .table-note {
+  color: #5b6b7a;
+  font-size: 0.92rem;
+}
+.paging-formula {
+  background: #f3f6f9;
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+.table-note { margin: -4px 0 10px; }
 #vmResult { color: #b4235a; }
 p:empty { display: none; }
 

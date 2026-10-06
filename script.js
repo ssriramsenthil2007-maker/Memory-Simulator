@@ -27,10 +27,12 @@ if (wanted) showTab(wanted);
 const pageTable = [5, 2, null, 0, 3, 1, null, 4];
 
 function drawPageTable() {
-  let html = "<tr><th>Page</th><th>Frame</th></tr>";
+  let html = "<tr><th>Page number</th><th>Frame number</th><th>Mapping status</th></tr>";
   for (let i = 0; i < pageTable.length; i++) {
-    const frame = pageTable[i] === null ? "not in memory" : pageTable[i];
-    html += "<tr><td>" + i + "</td><td>" + frame + "</td></tr>";
+    const frame = pageTable[i];
+    const mapped = frame !== null;
+    html += "<tr><td>" + i + "</td><td>" + (mapped ? frame : "—") +
+            "</td><td>" + (mapped ? "Page " + i + " → Frame " + frame : "Not in memory") + "</td></tr>";
   }
   document.getElementById("pageTable").innerHTML = html;
 }
@@ -49,20 +51,30 @@ document.getElementById("translateBtn").addEventListener("click", function () {
   const offset = address % pageSize;
 
   if (page >= pageTable.length) {
-    result.textContent = "Invalid address: page " + page + " does not exist.";
+    result.textContent =
+      "Invalid address: page " + page + " does not exist in this page table.\n" +
+      "Address split: floor(" + address + " / " + pageSize + ") = page " + page +
+      ", offset " + offset + ".";
     return;
   }
 
   const frame = pageTable[page];
   if (frame === null) {
-    result.textContent = "Page " + page + " is not in memory. Page fault!";
+    result.textContent =
+      "1. Split the logical address: floor(" + address + " / " + pageSize +
+      ") = page " + page + ", remainder = offset " + offset + ".\n" +
+      "2. Look up page " + page + " in the page table: it has no frame mapping (not in memory).\n" +
+      "3. Result: page fault. The operating system must load the page into a frame, update the page-table mapping, and retry the address. No physical address is available yet.";
     return;
   }
 
   const physical = frame * pageSize + offset;
   result.textContent =
-    "Page " + page + ", Offset " + offset +
-    " \u2192 Frame " + frame + " \u2192 Physical address = " + physical;
+    "1. Split the logical address: floor(" + address + " / " + pageSize +
+    ") = page " + page + ", remainder = offset " + offset + ".\n" +
+    "2. Page-table lookup: page " + page + " \u2192 frame " + frame + ".\n" +
+    "3. Physical address = frame \u00d7 page size + offset = " + frame + " \u00d7 " +
+    pageSize + " + " + offset + " = " + physical + ".";
 });
 
 drawPageTable();
@@ -78,10 +90,13 @@ const segments = [
 ];
 
 function drawSegTable() {
-  let html = "<tr><th>Segment</th><th>Base</th><th>Limit</th></tr>";
+  let html = "<tr><th>Segment</th><th>Base address</th><th>Limit (size)</th><th>Valid offsets</th><th>Physical address range</th></tr>";
   for (let i = 0; i < segments.length; i++) {
-    html += "<tr><td>" + i + "</td><td>" + segments[i].base +
-            "</td><td>" + segments[i].limit + "</td></tr>";
+    const segment = segments[i];
+    html += "<tr><td>" + i + "</td><td>" + segment.base +
+            "</td><td>" + segment.limit + "</td><td>0 to " + (segment.limit - 1) +
+            "</td><td>" + segment.base + " to " +
+            (segment.base + segment.limit - 1) + "</td></tr>";
   }
   document.getElementById("segTable").innerHTML = html;
 }
@@ -92,21 +107,32 @@ document.getElementById("segBtn").addEventListener("click", function () {
   const out = document.getElementById("segResult");
 
   if (!Number.isInteger(s) || s < 0 || s >= segments.length) {
-    out.textContent = "Invalid segment number (use 0 to " + (segments.length - 1) + ").";
+    out.textContent =
+      "1. Segment-table lookup failed: segment " + s + " does not exist.\n" +
+      "2. Use a segment number from 0 to " + (segments.length - 1) + ".";
     return;
   }
   if (isNaN(d) || d < 0) {
-    out.textContent = "Enter an offset of 0 or more.";
+    out.textContent = "Enter a non-negative offset so it can be checked against the selected segment's limit.";
     return;
   }
   if (d >= segments[s].limit) {
-    out.textContent = "Segmentation fault: offset " + d +
-      " is beyond the limit " + segments[s].limit + ".";
+    out.textContent =
+      "1. Segment-table lookup: segment " + s + " has base " + segments[s].base +
+      " and limit " + segments[s].limit + ".\n" +
+      "2. Bounds check failed: offset " + d + " must be less than the limit " +
+      segments[s].limit + " (valid offsets are 0 to " + (segments[s].limit - 1) + ").\n" +
+      "3. Result: segmentation fault. No physical address is generated.";
     return;
   }
 
   const physical = segments[s].base + d;
-  out.textContent = "Physical address = " + segments[s].base + " + " + d + " = " + physical;
+  out.textContent =
+    "1. Segment-table lookup: segment " + s + " \u2192 base " + segments[s].base +
+    ", limit " + segments[s].limit + ".\n" +
+    "2. Bounds check: offset " + d + " < limit " + segments[s].limit + " (valid).\n" +
+    "3. Physical address = base + offset = " + segments[s].base + " + " + d +
+    " = " + physical + ".";
 });
 
 drawSegTable();
