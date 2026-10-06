@@ -175,6 +175,61 @@ button:hover { background: #17566d; }
   padding: 10px 14px;
 }
 .table-note { margin: -4px 0 10px; }
+.paging-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.3fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+  margin: 18px 0;
+}
+.paging-stage {
+  min-width: 0;
+  padding: 14px;
+  background: #f3f6f9;
+  border: 1px solid #cbd5df;
+  border-radius: 6px;
+}
+.paging-stage h3 {
+  margin: 0 0 8px;
+  color: #1f6f8b;
+  font-size: 0.95rem;
+}
+.paging-stage > strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.paging-stage small {
+  display: block;
+  margin-top: 6px;
+  color: #5b6b7a;
+}
+.address-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.address-parts span {
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid #cbd5df;
+  border-radius: 4px;
+  font-size: 0.88rem;
+}
+.flow-arrow {
+  align-self: center;
+  color: #1f6f8b;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.paging-stage.is-unavailable {
+  background: #fbe3ec;
+  border-color: #e7a9bf;
+}
+.current-page td {
+  background: #e1f2e8;
+  font-weight: 600;
+}
 #vmResult { color: #b4235a; }
 p:empty { display: none; }
 
@@ -228,6 +283,16 @@ th { background: #f3f6f9; }
 .bar { height: 8px; background: #e8edf2; border-radius: 4px; margin-top: 12px; overflow: hidden; }
 .bar div { width: 0; height: 100%; background: #8aa0b0; border-radius: 4px; transition: width 0.8s; }
 .stat.best .bar div { background: #2e7d4f; }
+
+@media (max-width: 700px) {
+  .paging-flow {
+    grid-template-columns: 1fr;
+  }
+  .flow-arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+}
 
 .algo-card {
   background: white;

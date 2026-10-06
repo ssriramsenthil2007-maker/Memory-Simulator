@@ -28,6 +28,33 @@
             <label>Page size: <input id="pageSize" type="number" value="256"></label>
             <label>Logical address: <input id="address" type="number" value="1234"></label>
             <button id="translateBtn">Translate</button>
+            <div class="paging-flow" aria-label="Paging address translation flow" aria-live="polite">
+                <div class="paging-stage">
+                    <h3>Logical address</h3>
+                    <strong id="flowLogical">—</strong>
+                    <small id="flowSplit">Split into page number and offset</small>
+                    <div class="address-parts">
+                        <span>Page <strong id="flowPage">—</strong></span>
+                        <span>Offset <strong id="flowOffset">—</strong></span>
+                    </div>
+                </div>
+                <span class="flow-arrow" aria-hidden="true">→</span>
+                <div class="paging-stage" id="flowLookupStage">
+                    <h3>Page-table lookup</h3>
+                    <strong id="flowMapping">Page — → Frame —</strong>
+                    <small>The page number selects the page-table row; its entry gives the frame number.</small>
+                </div>
+                <span class="flow-arrow" aria-hidden="true">→</span>
+                <div class="paging-stage" id="flowPhysicalStage">
+                    <h3>Physical address</h3>
+                    <div class="address-parts">
+                        <span>Frame <strong id="flowFrame">—</strong></span>
+                        <span>Offset <strong id="flowPhysicalOffset">—</strong></span>
+                    </div>
+                    <strong id="flowPhysical">—</strong>
+                    <small id="flowFormula">Frame × page size + offset</small>
+                </div>
+            </div>
             <p id="result"></p>
             <h3>Page table mapping</h3>
             <p class="table-note">Each row maps a virtual page to a physical frame. “Not in memory” means there is no valid frame mapping, so accessing that page causes a page fault.</p>
@@ -42,6 +69,32 @@
             <label>Segment number: <input id="segNo" type="number" value="2"></label>
             <label>Offset: <input id="segOffset" type="number" value="53"></label>
             <button id="segBtn">Translate</button>
+            <div class="paging-flow" aria-label="Segmentation address translation flow" aria-live="polite">
+                <div class="paging-stage">
+                    <h3>Logical address</h3>
+                    <div class="address-parts">
+                        <span>Segment <strong id="flowSegment">—</strong></span>
+                        <span>Offset <strong id="flowSegOffset">—</strong></span>
+                    </div>
+                    <small>The segment number selects an entry in the segment table.</small>
+                </div>
+                <span class="flow-arrow" aria-hidden="true">→</span>
+                <div class="paging-stage" id="flowSegLookupStage">
+                    <h3>Segment-table lookup</h3>
+                    <div class="address-parts">
+                        <span>Base <strong id="flowBase">—</strong></span>
+                        <span>Limit <strong id="flowLimit">—</strong></span>
+                    </div>
+                    <strong id="flowSegCheck">Check offset against limit</strong>
+                    <small id="flowSegStatus">The offset must be less than the segment limit.</small>
+                </div>
+                <span class="flow-arrow" aria-hidden="true">→</span>
+                <div class="paging-stage" id="flowSegPhysicalStage">
+                    <h3>Physical address</h3>
+                    <strong id="flowSegPhysical">—</strong>
+                    <small id="flowSegFormula">Base + offset</small>
+                </div>
+            </div>
             <p id="segResult"></p>
             <h3>Segment table mapping</h3>
             <p class="table-note">Base is the starting physical address. Limit is the segment size and the offset must be in the range 0 to limit − 1.</p>

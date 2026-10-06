@@ -31,18 +31,42 @@ function drawPageTable() {
   for (let i = 0; i < pageTable.length; i++) {
     const frame = pageTable[i];
     const mapped = frame !== null;
-    html += "<tr><td>" + i + "</td><td>" + (mapped ? frame : "—") +
+    html += "<tr data-page=\"" + i + "\"><td>" + i + "</td><td>" + (mapped ? frame : "—") +
             "</td><td>" + (mapped ? "Page " + i + " → Frame " + frame : "Not in memory") + "</td></tr>";
   }
   document.getElementById("pageTable").innerHTML = html;
 }
 
-document.getElementById("translateBtn").addEventListener("click", function () {
+function renderPagingFlow(address, pageSize, page, offset, frame, physical, status) {
+  document.getElementById("flowLogical").textContent = address;
+  document.getElementById("flowSplit").textContent = "Page size: " + pageSize;
+  document.getElementById("flowPage").textContent = page === null ? "—" : page;
+  document.getElementById("flowOffset").textContent = offset === null ? "—" : offset;
+  document.getElementById("flowMapping").textContent = status === "mapped"
+    ? "Page " + page + " → Frame " + frame
+    : status === "fault" ? "Page " + page + " → no frame (page fault)" : "No page-table entry";
+  document.getElementById("flowFrame").textContent = status === "mapped" ? frame : "—";
+  document.getElementById("flowPhysicalOffset").textContent = offset === null ? "—" : offset;
+  document.getElementById("flowPhysical").textContent = status === "mapped" ? physical : "Not available";
+  document.getElementById("flowFormula").textContent = status === "mapped"
+    ? frame + " × " + pageSize + " + " + offset + " = " + physical
+    : status === "fault" ? "A frame mapping is needed before a physical address can be formed."
+      : "The logical address is outside this page table.";
+  document.getElementById("flowLookupStage").classList.toggle("is-unavailable", status !== "mapped");
+  document.getElementById("flowPhysicalStage").classList.toggle("is-unavailable", status !== "mapped");
+  document.querySelectorAll("#pageTable tr[data-page]").forEach(function (row) {
+    row.classList.toggle("current-page", Number(row.dataset.page) === page);
+  });
+}
+
+function translatePaging() {
   const pageSize = Number(document.getElementById("pageSize").value);
   const address = Number(document.getElementById("address").value);
   const result = document.getElementById("result");
 
   if (!(pageSize > 0) || address < 0 || isNaN(address)) {
+    renderPagingFlow(document.getElementById("address").value || "—",
+      document.getElementById("pageSize").value || "—", null, null, null, null, "invalid");
     result.textContent = "Enter a page size above 0 and an address of 0 or more.";
     return;
   }
@@ -51,6 +75,7 @@ document.getElementById("translateBtn").addEventListener("click", function () {
   const offset = address % pageSize;
 
   if (page >= pageTable.length) {
+    renderPagingFlow(address, pageSize, page, offset, null, null, "out-of-range");
     result.textContent =
       "Invalid address: page " + page + " does not exist in this page table.\n" +
       "Address split: floor(" + address + " / " + pageSize + ") = page " + page +
@@ -60,6 +85,7 @@ document.getElementById("translateBtn").addEventListener("click", function () {
 
   const frame = pageTable[page];
   if (frame === null) {
+    renderPagingFlow(address, pageSize, page, offset, null, null, "fault");
     result.textContent =
       "1. Split the logical address: floor(" + address + " / " + pageSize +
       ") = page " + page + ", remainder = offset " + offset + ".\n" +
@@ -69,15 +95,19 @@ document.getElementById("translateBtn").addEventListener("click", function () {
   }
 
   const physical = frame * pageSize + offset;
+  renderPagingFlow(address, pageSize, page, offset, frame, physical, "mapped");
   result.textContent =
     "1. Split the logical address: floor(" + address + " / " + pageSize +
     ") = page " + page + ", remainder = offset " + offset + ".\n" +
     "2. Page-table lookup: page " + page + " \u2192 frame " + frame + ".\n" +
     "3. Physical address = frame \u00d7 page size + offset = " + frame + " \u00d7 " +
     pageSize + " + " + offset + " = " + physical + ".";
-});
+}
+
+document.getElementById("translateBtn").addEventListener("click", translatePaging);
 
 drawPageTable();
+translatePaging();
 
 
 /* ---------- 3) Segmentation ---------- */
@@ -93,7 +123,7 @@ function drawSegTable() {
   let html = "<tr><th>Segment</th><th>Base address</th><th>Limit (size)</th><th>Valid offsets</th><th>Physical address range</th></tr>";
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i];
-    html += "<tr><td>" + i + "</td><td>" + segment.base +
+    html += "<tr data-segment=\"" + i + "\"><td>" + i + "</td><td>" + segment.base +
             "</td><td>" + segment.limit + "</td><td>0 to " + (segment.limit - 1) +
             "</td><td>" + segment.base + " to " +
             (segment.base + segment.limit - 1) + "</td></tr>";
@@ -101,22 +131,53 @@ function drawSegTable() {
   document.getElementById("segTable").innerHTML = html;
 }
 
-document.getElementById("segBtn").addEventListener("click", function () {
+function renderSegFlow(segmentNumber, offset, segment, status, physical) {
+  document.getElementById("flowSegment").textContent = segmentNumber;
+  document.getElementById("flowSegOffset").textContent = offset;
+  document.getElementById("flowBase").textContent = segment ? segment.base : "—";
+  document.getElementById("flowLimit").textContent = segment ? segment.limit : "—";
+  document.getElementById("flowSegCheck").textContent = status === "valid"
+    ? offset + " < " + segment.limit + " (valid)"
+    : status === "fault" ? offset + " ≥ " + segment.limit + " (out of bounds)"
+      : "Check offset against limit";
+  document.getElementById("flowSegStatus").textContent = status === "valid"
+    ? "Offset is within the segment; add it to the base."
+    : status === "fault" ? "Segmentation fault: the offset is outside this segment."
+      : segment ? "The offset must be less than the segment limit."
+        : "No segment-table entry exists for this segment number.";
+  document.getElementById("flowSegPhysical").textContent = status === "valid" ? physical : "Not available";
+  document.getElementById("flowSegFormula").textContent = status === "valid"
+    ? segment.base + " + " + offset + " = " + physical
+    : status === "fault" ? "No physical address is generated."
+      : "A valid segment mapping is required.";
+  document.getElementById("flowSegLookupStage").classList.toggle("is-unavailable", status === "invalid-segment" || status === "fault");
+  document.getElementById("flowSegPhysicalStage").classList.toggle("is-unavailable", status !== "valid");
+  document.querySelectorAll("#segTable tr[data-segment]").forEach(function (row) {
+    row.classList.toggle("current-page", Number(row.dataset.segment) === segmentNumber);
+  });
+}
+
+function translateSegmentation() {
   const s = Number(document.getElementById("segNo").value);
   const d = Number(document.getElementById("segOffset").value);
   const out = document.getElementById("segResult");
 
   if (!Number.isInteger(s) || s < 0 || s >= segments.length) {
+    renderSegFlow(document.getElementById("segNo").value || "—",
+      document.getElementById("segOffset").value || "—", null, "invalid-segment", null);
     out.textContent =
       "1. Segment-table lookup failed: segment " + s + " does not exist.\n" +
       "2. Use a segment number from 0 to " + (segments.length - 1) + ".";
     return;
   }
   if (isNaN(d) || d < 0) {
+    renderSegFlow(s, document.getElementById("segOffset").value || "—",
+      segments[s], "invalid-offset", null);
     out.textContent = "Enter a non-negative offset so it can be checked against the selected segment's limit.";
     return;
   }
   if (d >= segments[s].limit) {
+    renderSegFlow(s, d, segments[s], "fault", null);
     out.textContent =
       "1. Segment-table lookup: segment " + s + " has base " + segments[s].base +
       " and limit " + segments[s].limit + ".\n" +
@@ -127,15 +188,19 @@ document.getElementById("segBtn").addEventListener("click", function () {
   }
 
   const physical = segments[s].base + d;
+  renderSegFlow(s, d, segments[s], "valid", physical);
   out.textContent =
     "1. Segment-table lookup: segment " + s + " \u2192 base " + segments[s].base +
     ", limit " + segments[s].limit + ".\n" +
     "2. Bounds check: offset " + d + " < limit " + segments[s].limit + " (valid).\n" +
     "3. Physical address = base + offset = " + segments[s].base + " + " + d +
     " = " + physical + ".";
-});
+}
+
+document.getElementById("segBtn").addEventListener("click", translateSegmentation);
 
 drawSegTable();
+translateSegmentation();
 
 
 /* ---------- 4) Page replacement ---------- */
